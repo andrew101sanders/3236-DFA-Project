@@ -1,8 +1,8 @@
 
-public class Main {
+public class DFA {
 
 	public static void main(String[] args) {
-		
+		// TODO Auto-generated method stub
 
 	}
 
