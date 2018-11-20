@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,6 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class DFA {
 
@@ -23,6 +26,7 @@ public class DFA {
 				if(filename.exists() || temp.exists()) {
 					break;
 				}else {
+//					temp = selectfile();
 					System.out.println("Please enter a valid file name:");
 					in = sc.next();
 					temp = new File(in);
@@ -32,11 +36,12 @@ public class DFA {
 			System.out.println("No filename was entered!\nPlease enter a valid file name (with .txt):");
 			while(true) {
 				in = sc.next();
+//				filename = selectfile();
 				filename = new File(in);
 				if(filename.exists()) {
 					break;
 				}else {
-					System.out.println("Please enter a valid file name (with .txt):");
+					System.out.println("Please select a valid file name (with .txt):");
 				}
 			}
 		}
@@ -173,7 +178,28 @@ public class DFA {
 		
 		System.out.println("String " + in + " is " + (stringIsAccepted ? "accepted" : "not accepted"));
 	}
-
+	
+//	private static File selectfile() {
+//		File file = null;
+//			String[] buttons = {"Okay", "Cancel"}; 
+//			int rc = JOptionPane.showOptionDialog(null, "Press OK to Search for a text file that contains the DFA description", "Confirmation",
+//			    JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[1]);  
+//				JFileChooser chosenfile = new JFileChooser();
+//				chosenfile.setDialogTitle("Select a text file");
+//				chosenfile.setFileFilter(new FileNameExtensionFilter("text file", "txt"));
+//				int returnValue = chosenfile.showOpenDialog(null);
+//				if (returnValue == JFileChooser.APPROVE_OPTION) {
+//					file = chosenfile.getSelectedFile();
+//				}
+//				else {
+//					JOptionPane.showMessageDialog(null, "No file chosen!", "what the heck!", JOptionPane.ERROR_MESSAGE);
+//					return null;
+//				}
+//		return file;
+//		}
+//	
+//	
+//
 
 }
 
