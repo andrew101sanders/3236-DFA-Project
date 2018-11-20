@@ -1,18 +1,22 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class DFA {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		File filename;
-		File temp = new File("");
+		File temp = null;
 		String in = "";
 		Scanner sc = new Scanner(System.in);
-		
+
 		try{
 			while(true) { //To check file name validity
 				filename = new File(args[0]);
@@ -36,16 +40,16 @@ public class DFA {
 				}
 			}
 		}
-		
+		Object[] DFAtt = DFAcreate(filename);
 		boolean testing = true;
 		while(testing) {
-		
+
 			System.out.println("Please enter a string to test: ");
 			in = sc.next();
-			
-//			DFA(filename, in);
+
+			DFAcheck(DFAtt, in);
 			//Print result			
-			
+
 			System.out.println("Would you like to check another string? Y/N");
 			in = sc.next();
 			boolean again = false;
@@ -56,25 +60,121 @@ public class DFA {
 			}else {
 				again=true;
 				while(again) {
-						System.out.println("Please type Y or N.");
-						in = sc.next();
-						if(in.contains("N")) {
-							again=false;
-							testing=false;
-							break;
-						}else if(in.contains("Y")){
-							again=false;
-							break;
-						}
+					System.out.println("Please type Y or N.");
+					in = sc.next();
+					if(in.contains("N")) {
+						again=false;
+						testing=false;
+						break;
+					}else if(in.contains("Y")){
+						again=false;
+						break;
 					}
+				}
 			}
 		}
 		System.out.println("Goodbye!");
+
+	}
+
+	private static Object[] DFAcreate(File file) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		ArrayList<String> alphabet = new ArrayList<String>();
+		ArrayList<String> states = new ArrayList<String>();
+		ArrayList<String> startState = new ArrayList<String>();
+		ArrayList<String> acceptStates = new ArrayList<String>();
+		String transitionTable[][] = null;
+		StringTokenizer tokn = null;
+
+		//first line - alphabet
+
+		String temporary = br.readLine();
+		temporary = temporary.substring(1, temporary.length()-1);
+		tokn = new StringTokenizer(temporary, ",");
+		while (tokn.hasMoreTokens()) alphabet.add(tokn.nextToken());
+		//		for (int i = 0; i < alphabet.size(); i++) {
+		//			System.out.println("---"+alphabet.get(i));
+		//		}
+
+
+		//second line - states
+		temporary = br.readLine();
+		temporary = temporary.substring(1, temporary.length()-1);
+		tokn = new StringTokenizer(temporary, ",");
+		while (tokn.hasMoreTokens()) states.add(tokn.nextToken());
+		//		for (int i = 0; i < states.size(); i++) {
+		//			System.out.println("+++"+states.get(i));
+		//		}
+
+		//third line - start state
+		startState.add(br.readLine());
+
+		//fourth line - accept states
+		temporary = br.readLine();
+		temporary = temporary.substring(1, temporary.length()-1);
+		tokn = new StringTokenizer(temporary, ",");
+		while (tokn.hasMoreTokens()) acceptStates.add(tokn.nextToken());
+		//		for (int i = 0; i < acceptStates.size(); i++) {
+		//			System.out.println("***"+acceptStates.get(i));
+		//		}
+
+		//rest - transition table stuff
+		Map<String,Integer> alphabetMap = new HashMap<String,Integer>();
+		Map<String,Integer> stateMap = new HashMap<String,Integer>();
+		for (int i = 0; i < alphabet.size(); i++) {
+			alphabetMap.put(alphabet.get(i), i);
+		}
+		for (int i = 0; i < states.size(); i++) {
+			stateMap.put(states.get(i), i);
+		}
+
+		transitionTable = new String[states.size()][alphabet.size()];
+		while(br.ready()) {
+			temporary = br.readLine();
+			tokn = new StringTokenizer(temporary, ",()->");
+			
+			transitionTable[stateMap.get(tokn.nextToken())][alphabetMap.get(tokn.nextToken())] = tokn.nextToken();
+		}
+
+
+		br.close();
+
+		Object mapsAndDFA[] = new Object[5];
+		mapsAndDFA[0] = alphabetMap;
+		mapsAndDFA[1] = stateMap;
+		mapsAndDFA[2] = transitionTable;
+		mapsAndDFA[3] = startState;
+		mapsAndDFA[4] = acceptStates;
+		return mapsAndDFA;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void DFAcheck(Object[] DFAtt, String in) {
+		Map<String,Integer> alphabetMap = (Map<String, Integer>) DFAtt[0];
+		Map<String,Integer> stateMap = (Map<String, Integer>) DFAtt[1];
+		String transitionTable[][] = (String[][]) DFAtt[2];
+		ArrayList<String> startState = (ArrayList<String>) DFAtt[3];
+		ArrayList<String> acceptStates = (ArrayList<String>) DFAtt[4];
+		boolean stringIsAccepted = false;
+
+		String currentInput;
+		String currentState = startState.get(0);
 		
+		for (int i = 0; i != in.length(); i++) {
+			currentInput = String.valueOf(in.charAt(i));
+			System.out.println("Current state: " + currentState + ". Current input: " + currentInput);
+			currentState = transitionTable[stateMap.get(currentState)][alphabetMap.get(currentInput)];
+			System.out.println("Resulting state: " + currentState);
+		}
+		
+		for(int p = 0; p<acceptStates.size(); p++) {
+			if (currentState.equals(acceptStates.get(p))) stringIsAccepted = true;
+		}
+		
+		System.out.println("String " + in + " is " + (stringIsAccepted ? "accepted" : "not accepted"));
 	}
 
-	private static void DFA(File file, String in) {
 
-	}
-	
 }
+
+
