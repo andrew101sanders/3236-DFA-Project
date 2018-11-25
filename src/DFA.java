@@ -7,45 +7,79 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.StringTokenizer;
-
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class DFA {
 
 	public static void main(String[] args) throws IOException {
-		File filename;
-		File temp = null;
+		File filename = null;
 		String in = "";
 		Scanner sc = new Scanner(System.in);
 
 		try{
-			while(true) { //To check file name validity
+			if(args.length > 0) {
 				filename = new File(args[0]);
-				if(filename.exists() || temp.exists()) {
-					break;
-				}else {
-//					temp = selectfile();
-					System.out.println("Please enter a valid file name:");
-					in = sc.next();
-					temp = new File(in);
+				if(!filename.exists()) {
+					System.out.println(filename + " does not exist!\nPlease select a valid file (with .txt):");
+					filename = null;
 				}
 			}
-		}catch(Exception e) {
-			System.out.println("No filename was entered!\nPlease enter a valid file name (with .txt):");
-			while(true) {
-				in = sc.next();
-//				filename = selectfile();
-				filename = new File(in);
-				if(filename.exists()) {
-					break;
-				}else {
-					System.out.println("Please select a valid file name (with .txt):");
+			else {
+				System.out.println("No filename was entered!\nPlease select a valid file (with .txt):");
+			}
+			
+			if (filename == null) {
+				while(true) {
+					filename = selectFile();
+					if(filename != null && filename.exists()) {
+						break;
+					}else {
+						System.out.println("You clicked Cancel; would you like to try again? (Y to continue or N to quit)");
+						in = sc.next().toUpperCase();
+						boolean again = false;
+						if(in.contains("N")) {
+							sc.close();
+							System.out.println("Goodbye!");
+							System.exit(0);
+						}else if(in.contains("Y")){
+							//continue
+						}else {
+							again=true;
+							while(again) {
+								System.out.println("Please type Y to continue or N to quit.");
+								in = sc.next().toUpperCase();
+								if(in.contains("N")) {
+									sc.close();
+									System.out.println("Goodbye!");
+									System.exit(0);
+								}else if(in.contains("Y")){
+									again=false;
+									//continue
+								}
+							}
+						}
+							
+						System.out.println("Please select a valid file (with .txt):");
+					}
 				}
 			}
 		}
+		catch(Exception e) {
+			System.out.println("An error occurred: " + e.getMessage());
+			sc.close();
+			System.out.println("Goodbye!");
+			System.exit(0);
+		}
+		
 		Object[] DFAtt = DFAcreate(filename);
+		if(DFAtt[0] == null) { //file was invalid
+			sc.close();
+			System.out.println("Goodbye!");
+			System.exit(0);
+		}
+		
 		boolean testing = true;
 		while(testing) {
 
@@ -56,7 +90,7 @@ public class DFA {
 			//Print result			
 
 			System.out.println("Would you like to check another string? Y/N");
-			in = sc.next();
+			in = sc.next().toUpperCase();
 			boolean again = false;
 			if(in.contains("N")) {
 				testing=false;
@@ -66,7 +100,7 @@ public class DFA {
 				again=true;
 				while(again) {
 					System.out.println("Please type Y or N.");
-					in = sc.next();
+					in = sc.next().toUpperCase();
 					if(in.contains("N")) {
 						again=false;
 						testing=false;
@@ -78,8 +112,9 @@ public class DFA {
 				}
 			}
 		}
+		
+		sc.close();
 		System.out.println("Goodbye!");
-
 	}
 
 	private static Object[] DFAcreate(File file) throws IOException {
@@ -90,66 +125,70 @@ public class DFA {
 		ArrayList<String> acceptStates = new ArrayList<String>();
 		String transitionTable[][] = null;
 		StringTokenizer tokn = null;
-
-		//first line - alphabet
-
-		String temporary = br.readLine();
-		temporary = temporary.substring(1, temporary.length()-1);
-		tokn = new StringTokenizer(temporary, ",");
-		while (tokn.hasMoreTokens()) alphabet.add(tokn.nextToken());
-		//		for (int i = 0; i < alphabet.size(); i++) {
-		//			System.out.println("---"+alphabet.get(i));
-		//		}
-
-
-		//second line - states
-		temporary = br.readLine();
-		temporary = temporary.substring(1, temporary.length()-1);
-		tokn = new StringTokenizer(temporary, ",");
-		while (tokn.hasMoreTokens()) states.add(tokn.nextToken());
-		//		for (int i = 0; i < states.size(); i++) {
-		//			System.out.println("+++"+states.get(i));
-		//		}
-
-		//third line - start state
-		startState.add(br.readLine());
-
-		//fourth line - accept states
-		temporary = br.readLine();
-		temporary = temporary.substring(1, temporary.length()-1);
-		tokn = new StringTokenizer(temporary, ",");
-		while (tokn.hasMoreTokens()) acceptStates.add(tokn.nextToken());
-		//		for (int i = 0; i < acceptStates.size(); i++) {
-		//			System.out.println("***"+acceptStates.get(i));
-		//		}
-
-		//rest - transition table stuff
-		Map<String,Integer> alphabetMap = new HashMap<String,Integer>();
-		Map<String,Integer> stateMap = new HashMap<String,Integer>();
-		for (int i = 0; i < alphabet.size(); i++) {
-			alphabetMap.put(alphabet.get(i), i);
-		}
-		for (int i = 0; i < states.size(); i++) {
-			stateMap.put(states.get(i), i);
-		}
-
-		transitionTable = new String[states.size()][alphabet.size()];
-		while(br.ready()) {
-			temporary = br.readLine();
-			tokn = new StringTokenizer(temporary, ",()->");
-			
-			transitionTable[stateMap.get(tokn.nextToken())][alphabetMap.get(tokn.nextToken())] = tokn.nextToken();
-		}
-
-
-		br.close();
-
 		Object mapsAndDFA[] = new Object[5];
-		mapsAndDFA[0] = alphabetMap;
-		mapsAndDFA[1] = stateMap;
-		mapsAndDFA[2] = transitionTable;
-		mapsAndDFA[3] = startState;
-		mapsAndDFA[4] = acceptStates;
+
+		try {
+			//first line - alphabet
+
+			String temporary = br.readLine();
+			temporary = temporary.substring(1, temporary.length()-1);
+			tokn = new StringTokenizer(temporary, ",");
+			while (tokn.hasMoreTokens()) alphabet.add(tokn.nextToken());
+			//		for (int i = 0; i < alphabet.size(); i++) {
+			//			System.out.println("---"+alphabet.get(i));
+			//		}
+
+
+			//second line - states
+			temporary = br.readLine();
+			temporary = temporary.substring(1, temporary.length()-1);
+			tokn = new StringTokenizer(temporary, ",");
+			while (tokn.hasMoreTokens()) states.add(tokn.nextToken());
+			//		for (int i = 0; i < states.size(); i++) {
+			//			System.out.println("+++"+states.get(i));
+			//		}
+
+			//third line - start state
+			startState.add(br.readLine());
+
+			//fourth line - accept states
+			temporary = br.readLine();
+			temporary = temporary.substring(1, temporary.length()-1);
+			tokn = new StringTokenizer(temporary, ",");
+			while (tokn.hasMoreTokens()) acceptStates.add(tokn.nextToken());
+			//		for (int i = 0; i < acceptStates.size(); i++) {
+			//			System.out.println("***"+acceptStates.get(i));
+			//		}
+
+			//rest - transition table stuff
+			Map<String,Integer> alphabetMap = new HashMap<String,Integer>();
+			Map<String,Integer> stateMap = new HashMap<String,Integer>();
+			for (int i = 0; i < alphabet.size(); i++) {
+				alphabetMap.put(alphabet.get(i), i);
+			}
+			for (int i = 0; i < states.size(); i++) {
+				stateMap.put(states.get(i), i);
+			}
+
+			transitionTable = new String[states.size()][alphabet.size()];
+			while(br.ready()) {
+				temporary = br.readLine();
+				tokn = new StringTokenizer(temporary, ",()->");
+			
+				transitionTable[stateMap.get(tokn.nextToken())][alphabetMap.get(tokn.nextToken())] = tokn.nextToken();
+			}
+
+			mapsAndDFA[0] = alphabetMap;
+			mapsAndDFA[1] = stateMap;
+			mapsAndDFA[2] = transitionTable;
+			mapsAndDFA[3] = startState;
+			mapsAndDFA[4] = acceptStates;
+		}
+		catch(Exception e) {
+			System.out.println(file.getName() + " is not a valid DFA file!");
+		}
+		
+		br.close();
 		return mapsAndDFA;
 	}
 
@@ -164,43 +203,42 @@ public class DFA {
 
 		String currentInput;
 		String currentState = startState.get(0);
+		boolean invalidInput = false;
 		
 		for (int i = 0; i != in.length(); i++) {
 			currentInput = String.valueOf(in.charAt(i));
 			System.out.println("Current state: " + currentState + ". Current input: " + currentInput);
-			currentState = transitionTable[stateMap.get(currentState)][alphabetMap.get(currentInput)];
-			System.out.println("Resulting state: " + currentState);
+			try {
+				currentState = transitionTable[stateMap.get(currentState)][alphabetMap.get(currentInput)];
+				System.out.println("Resulting state: " + currentState);
+			}
+			catch (Exception e) {
+				System.out.println(currentInput + " is not a valid input");
+				System.out.println("String " + in + " is not accepted");
+				invalidInput = true;
+				break;
+			}
 		}
 		
-		for(int p = 0; p<acceptStates.size(); p++) {
-			if (currentState.equals(acceptStates.get(p))) stringIsAccepted = true;
-		}
+		if (!invalidInput) {
+			for(int p = 0; p<acceptStates.size(); p++) {
+				if (currentState.equals(acceptStates.get(p))) stringIsAccepted = true;
+			}
 		
-		System.out.println("String " + in + " is " + (stringIsAccepted ? "accepted" : "not accepted"));
+			System.out.println("String " + in + " is " + (stringIsAccepted ? "accepted" : "not accepted"));
+		}
 	}
 	
-//	private static File selectfile() {
-//		File file = null;
-//			String[] buttons = {"Okay", "Cancel"}; 
-//			int rc = JOptionPane.showOptionDialog(null, "Press OK to Search for a text file that contains the DFA description", "Confirmation",
-//			    JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[1]);  
-//				JFileChooser chosenfile = new JFileChooser();
-//				chosenfile.setDialogTitle("Select a text file");
-//				chosenfile.setFileFilter(new FileNameExtensionFilter("text file", "txt"));
-//				int returnValue = chosenfile.showOpenDialog(null);
-//				if (returnValue == JFileChooser.APPROVE_OPTION) {
-//					file = chosenfile.getSelectedFile();
-//				}
-//				else {
-//					JOptionPane.showMessageDialog(null, "No file chosen!", "what the heck!", JOptionPane.ERROR_MESSAGE);
-//					return null;
-//				}
-//		return file;
-//		}
-//	
-//	
-//
-
+	private static File selectFile() {
+		File file = null;
+		JFileChooser fileChooser = new JFileChooser("."); //"." starts in current directory
+		FileFilter txtFilter = new FileNameExtensionFilter("Text Files (*.txt)", "txt");
+		fileChooser.addChoosableFileFilter(txtFilter);
+		fileChooser.setAcceptAllFileFilterUsed(false);
+	      if (fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+	    	  file = fileChooser.getSelectedFile();
+	      }
+	      
+	      return file;
+	}
 }
-
-
